@@ -1,65 +1,124 @@
-import Image from "next/image";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <div className="max-w-4xl mx-auto px-4 py-20">
+        {/* Hero */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold mb-6">
+            🎨 Canvas Builder
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Build beautiful pages with a drag-and-drop editor. 
+            No code required. Export to JSON. Embed anywhere.
           </p>
+          <div className="flex justify-center gap-4">
+            <Link
+              href="/editor"
+              className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-lg transition-colors"
+            >
+              Open Editor →
+            </Link>
+            <Link
+              href="/p/demo"
+              className="px-8 py-4 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold text-lg transition-colors"
+            >
+              View Demo
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="bg-gray-800/50 rounded-xl p-6">
+            <div className="text-3xl mb-4">📦</div>
+            <h3 className="text-xl font-semibold mb-2">JSON DSL</h3>
+            <p className="text-gray-400">
+              Pages are stored as JSON. Export, import, version control - 
+              your data, your way.
+            </p>
+          </div>
+          <div className="bg-gray-800/50 rounded-xl p-6">
+            <div className="text-3xl mb-4">🔌</div>
+            <h3 className="text-xl font-semibold mb-2">Embeddable</h3>
+            <p className="text-gray-400">
+              Each page has an iframe-friendly URL. Embed your creations 
+              anywhere on the web.
+            </p>
+          </div>
+          <div className="bg-gray-800/50 rounded-xl p-6">
+            <div className="text-3xl mb-4">⚡</div>
+            <h3 className="text-xl font-semibold mb-2">React Powered</h3>
+            <p className="text-gray-400">
+              Built on Next.js. Your JSON DSL compiles to real React 
+              components at runtime.
+            </p>
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* How it works */}
+        <div className="bg-gray-800/30 rounded-xl p-8 mb-16">
+          <h2 className="text-2xl font-bold mb-6 text-center">How It Works</h2>
+          <div className="grid md:grid-cols-4 gap-4 text-center">
+            <div>
+              <div className="text-4xl mb-2">1️⃣</div>
+              <p className="text-sm text-gray-300">Create elements in the editor</p>
+            </div>
+            <div>
+              <div className="text-4xl mb-2">2️⃣</div>
+              <p className="text-sm text-gray-300">Style them with visual tools</p>
+            </div>
+            <div>
+              <div className="text-4xl mb-2">3️⃣</div>
+              <p className="text-sm text-gray-300">Save to get a unique URL</p>
+            </div>
+            <div>
+              <div className="text-4xl mb-2">4️⃣</div>
+              <p className="text-sm text-gray-300">Embed or share anywhere</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Element Types */}
+        <div className="text-center mb-16">
+          <h2 className="text-2xl font-bold mb-6">Available Elements</h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              '📝 Text', '🔤 Heading', '🔘 Button', '✏️ Text Input',
+              '📄 Textarea', '☑️ Checkbox', '⭕ Radio', '📋 Select',
+              '🖼️ Image', '🔗 Link', '📦 Container', '➖ Divider'
+            ].map((el) => (
+              <span key={el} className="px-4 py-2 bg-gray-700/50 rounded-lg text-sm">
+                {el}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Embed Example */}
+        <div className="bg-gray-800/30 rounded-xl p-8">
+          <h2 className="text-2xl font-bold mb-4 text-center">Embed Your Pages</h2>
+          <p className="text-gray-400 text-center mb-6">
+            Use the iframe URL to embed pages anywhere:
+          </p>
+          <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+            <code className="text-green-400">
+              {`<iframe src="https://your-domain.com/p/your-page/iframe" />`}
+            </code>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-20 text-center text-gray-500 text-sm">
+          <p>Built with Next.js + Tailwind CSS</p>
+          <p className="mt-2">
+            <Link href="/editor" className="text-blue-400 hover:underline">
+              Start Building →
+            </Link>
+          </p>
+        </footer>
+      </div>
+    </main>
   );
 }
