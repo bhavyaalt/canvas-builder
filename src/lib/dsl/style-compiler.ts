@@ -1,33 +1,40 @@
-// Compiles StyleProps to Tailwind classes
+// Compiles StyleProps to Tailwind classes + inline styles
+// Tailwind can't handle arbitrary values at runtime, so we use inline styles for dynamic values
 import { StyleProps } from './types';
 
-export function compileStyles(styles?: StyleProps): string {
-  if (!styles) return '';
+export interface CompiledStyles {
+  className: string;
+  style: React.CSSProperties;
+}
+
+export function compileStyles(styles?: StyleProps): CompiledStyles {
+  if (!styles) return { className: '', style: {} };
   
   const classes: string[] = [];
+  const inlineStyle: React.CSSProperties = {};
   
   // Width
   if (styles.width) {
     if (styles.width === '100%') classes.push('w-full');
     else if (styles.width === 'auto') classes.push('w-auto');
-    else classes.push(`w-[${styles.width}]`);
+    else inlineStyle.width = styles.width;
   }
   
   // Height
   if (styles.height) {
     if (styles.height === '100%') classes.push('h-full');
     else if (styles.height === 'auto') classes.push('h-auto');
-    else classes.push(`h-[${styles.height}]`);
+    else inlineStyle.height = styles.height;
   }
   
-  // Padding
+  // Padding - use inline for custom values
   if (styles.padding) {
-    classes.push(`p-[${styles.padding}]`);
+    inlineStyle.padding = styles.padding;
   }
   
-  // Margin
+  // Margin - use inline for custom values
   if (styles.margin) {
-    classes.push(`m-[${styles.margin}]`);
+    inlineStyle.margin = styles.margin;
   }
   
   // Display
@@ -70,97 +77,64 @@ export function compileStyles(styles?: StyleProps): string {
     classes.push(alignMap[styles.alignItems]);
   }
   
-  // Gap
+  // Gap - use inline
   if (styles.gap) {
-    classes.push(`gap-[${styles.gap}]`);
+    inlineStyle.gap = styles.gap;
   }
   
-  // Background color
+  // Background color - ALWAYS use inline for dynamic colors
   if (styles.backgroundColor) {
-    if (styles.backgroundColor.startsWith('#')) {
-      classes.push(`bg-[${styles.backgroundColor}]`);
-    } else {
-      classes.push(`bg-${styles.backgroundColor}`);
-    }
+    inlineStyle.backgroundColor = styles.backgroundColor;
   }
   
-  // Text color
+  // Text color - ALWAYS use inline for dynamic colors
   if (styles.color) {
-    if (styles.color.startsWith('#')) {
-      classes.push(`text-[${styles.color}]`);
-    } else {
-      classes.push(`text-${styles.color}`);
-    }
+    inlineStyle.color = styles.color;
   }
   
-  // Border color
+  // Border color - use inline
   if (styles.borderColor) {
-    if (styles.borderColor.startsWith('#')) {
-      classes.push(`border-[${styles.borderColor}]`);
-    } else {
-      classes.push(`border-${styles.borderColor}`);
-    }
+    inlineStyle.borderColor = styles.borderColor;
   }
   
-  // Border width
+  // Border width - use inline
   if (styles.borderWidth) {
-    if (styles.borderWidth === '1px') classes.push('border');
-    else if (styles.borderWidth === '2px') classes.push('border-2');
-    else classes.push(`border-[${styles.borderWidth}]`);
+    inlineStyle.borderWidth = styles.borderWidth;
+    inlineStyle.borderStyle = styles.borderStyle || 'solid';
   }
   
-  // Border radius
+  // Border radius - use inline
   if (styles.borderRadius) {
-    const radiusMap: Record<string, string> = {
-      '0': 'rounded-none',
-      '4px': 'rounded',
-      '8px': 'rounded-lg',
-      '12px': 'rounded-xl',
-      '16px': 'rounded-2xl',
-      '9999px': 'rounded-full',
-    };
-    classes.push(radiusMap[styles.borderRadius] || `rounded-[${styles.borderRadius}]`);
+    inlineStyle.borderRadius = styles.borderRadius;
   }
   
   // Border style
   if (styles.borderStyle) {
-    if (styles.borderStyle !== 'solid') {
-      classes.push(`border-${styles.borderStyle}`);
-    }
+    inlineStyle.borderStyle = styles.borderStyle;
   }
   
-  // Font size
+  // Font size - use inline
   if (styles.fontSize) {
-    const sizeMap: Record<string, string> = {
-      '12px': 'text-xs',
-      '14px': 'text-sm',
-      '16px': 'text-base',
-      '18px': 'text-lg',
-      '20px': 'text-xl',
-      '24px': 'text-2xl',
-      '30px': 'text-3xl',
-      '36px': 'text-4xl',
-    };
-    classes.push(sizeMap[styles.fontSize] || `text-[${styles.fontSize}]`);
+    inlineStyle.fontSize = styles.fontSize;
   }
   
   // Font weight
   if (styles.fontWeight) {
-    const weightMap = {
-      normal: 'font-normal',
-      medium: 'font-medium',
-      semibold: 'font-semibold',
-      bold: 'font-bold',
+    const weightMap: Record<string, number> = {
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
     };
-    classes.push(weightMap[styles.fontWeight]);
+    inlineStyle.fontWeight = weightMap[styles.fontWeight];
   }
   
   // Text align
   if (styles.textAlign) {
-    classes.push(`text-${styles.textAlign}`);
+    inlineStyle.textAlign = styles.textAlign;
   }
   
-  // Shadow
+  // Shadow - use Tailwind for these predefined values
   if (styles.shadow && styles.shadow !== 'none') {
     const shadowMap = {
       sm: 'shadow-sm',
@@ -173,8 +147,11 @@ export function compileStyles(styles?: StyleProps): string {
   
   // Opacity
   if (styles.opacity !== undefined && styles.opacity !== 1) {
-    classes.push(`opacity-[${styles.opacity}]`);
+    inlineStyle.opacity = styles.opacity;
   }
   
-  return classes.join(' ');
+  return {
+    className: classes.join(' '),
+    style: inlineStyle,
+  };
 }

@@ -20,11 +20,12 @@ import { compileStyles } from './style-compiler';
 
 // Element Renderers
 function renderContainer(element: ContainerElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <div
       key={element.id}
-      className={`${styles} ${element.className || ''}`}
+      className={`${className} ${element.className || ''}`}
+      style={style}
     >
       {element.children?.map(renderElement)}
     </div>
@@ -32,11 +33,12 @@ function renderContainer(element: ContainerElement): React.ReactNode {
 }
 
 function renderText(element: TextElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <p
       key={element.id}
-      className={`${styles} ${element.className || ''}`}
+      className={`${className} ${element.className || ''}`}
+      style={style}
     >
       {element.content}
     </p>
@@ -44,20 +46,21 @@ function renderText(element: TextElement): React.ReactNode {
 }
 
 function renderHeading(element: HeadingElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   const Tag = `h${element.level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
-  const sizeClasses = {
-    1: 'text-4xl font-bold',
-    2: 'text-3xl font-bold',
-    3: 'text-2xl font-semibold',
-    4: 'text-xl font-semibold',
-    5: 'text-lg font-medium',
-    6: 'text-base font-medium',
+  const sizeStyles: Record<number, React.CSSProperties> = {
+    1: { fontSize: '2.25rem', fontWeight: 700 },
+    2: { fontSize: '1.875rem', fontWeight: 700 },
+    3: { fontSize: '1.5rem', fontWeight: 600 },
+    4: { fontSize: '1.25rem', fontWeight: 600 },
+    5: { fontSize: '1.125rem', fontWeight: 500 },
+    6: { fontSize: '1rem', fontWeight: 500 },
   };
   return (
     <Tag
       key={element.id}
-      className={`${sizeClasses[element.level]} ${styles} ${element.className || ''}`}
+      className={`${className} ${element.className || ''}`}
+      style={{ ...sizeStyles[element.level], ...style }}
     >
       {element.content}
     </Tag>
@@ -65,12 +68,12 @@ function renderHeading(element: HeadingElement): React.ReactNode {
 }
 
 function renderButton(element: ButtonElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
-  const variantClasses = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50',
-    ghost: 'text-blue-600 hover:bg-blue-50',
+  const { className, style } = compileStyles(element.styles);
+  const variantStyles: Record<string, React.CSSProperties> = {
+    primary: { backgroundColor: '#2563eb', color: 'white' },
+    secondary: { backgroundColor: '#4b5563', color: 'white' },
+    outline: { border: '2px solid #2563eb', color: '#2563eb', backgroundColor: 'transparent' },
+    ghost: { color: '#2563eb', backgroundColor: 'transparent' },
   };
   const variant = element.variant || 'primary';
   
@@ -79,7 +82,6 @@ function renderButton(element: ButtonElement): React.ReactNode {
       if (element.onClick.startsWith('http')) {
         window.open(element.onClick, '_blank');
       } else {
-        // Custom action handling
         console.log('Action:', element.onClick);
       }
     }
@@ -89,7 +91,8 @@ function renderButton(element: ButtonElement): React.ReactNode {
     <button
       key={element.id}
       onClick={handleClick}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors ${variantClasses[variant]} ${styles} ${element.className || ''}`}
+      className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer ${className} ${element.className || ''}`}
+      style={{ ...variantStyles[variant], ...style }}
     >
       {element.label}
     </button>
@@ -97,7 +100,7 @@ function renderButton(element: ButtonElement): React.ReactNode {
 }
 
 function renderTextInput(element: TextInputElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <div key={element.id} className="flex flex-col gap-1">
       {element.label && (
@@ -112,14 +115,15 @@ function renderTextInput(element: TextInputElement): React.ReactNode {
         name={element.name}
         placeholder={element.placeholder}
         required={element.required}
-        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${styles} ${element.className || ''}`}
+        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${className} ${element.className || ''}`}
+        style={style}
       />
     </div>
   );
 }
 
 function renderTextarea(element: TextareaElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <div key={element.id} className="flex flex-col gap-1">
       {element.label && (
@@ -134,18 +138,20 @@ function renderTextarea(element: TextareaElement): React.ReactNode {
         placeholder={element.placeholder}
         rows={element.rows || 4}
         required={element.required}
-        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-y ${styles} ${element.className || ''}`}
+        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-y ${className} ${element.className || ''}`}
+        style={style}
       />
     </div>
   );
 }
 
 function renderCheckbox(element: CheckboxElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <label
       key={element.id}
-      className={`flex items-center gap-2 cursor-pointer ${styles} ${element.className || ''}`}
+      className={`flex items-center gap-2 cursor-pointer ${className} ${element.className || ''}`}
+      style={style}
     >
       <input
         type="checkbox"
@@ -159,11 +165,12 @@ function renderCheckbox(element: CheckboxElement): React.ReactNode {
 }
 
 function renderRadio(element: RadioElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <label
       key={element.id}
-      className={`flex items-center gap-2 cursor-pointer ${styles} ${element.className || ''}`}
+      className={`flex items-center gap-2 cursor-pointer ${className} ${element.className || ''}`}
+      style={style}
     >
       <input
         type="radio"
@@ -178,7 +185,7 @@ function renderRadio(element: RadioElement): React.ReactNode {
 }
 
 function renderSelect(element: SelectElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <div key={element.id} className="flex flex-col gap-1">
       {element.label && (
@@ -191,7 +198,8 @@ function renderSelect(element: SelectElement): React.ReactNode {
         id={element.name}
         name={element.name}
         required={element.required}
-        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white ${styles} ${element.className || ''}`}
+        className={`px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white ${className} ${element.className || ''}`}
+        style={style}
       >
         {element.placeholder && (
           <option value="" disabled>
@@ -209,32 +217,34 @@ function renderSelect(element: SelectElement): React.ReactNode {
 }
 
 function renderImage(element: ImageElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
-  const fitClasses = {
-    cover: 'object-cover',
-    contain: 'object-contain',
-    fill: 'object-fill',
-    none: 'object-none',
+  const { className, style } = compileStyles(element.styles);
+  const fitMap: Record<string, React.CSSProperties['objectFit']> = {
+    cover: 'cover',
+    contain: 'contain',
+    fill: 'fill',
+    none: 'none',
   };
   return (
     <img
       key={element.id}
       src={element.src}
       alt={element.alt}
-      className={`${fitClasses[element.objectFit || 'cover']} ${styles} ${element.className || ''}`}
+      className={`${className} ${element.className || ''}`}
+      style={{ objectFit: fitMap[element.objectFit || 'cover'], ...style }}
     />
   );
 }
 
 function renderLink(element: LinkElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <a
       key={element.id}
       href={element.href}
       target={element.target || '_self'}
       rel={element.target === '_blank' ? 'noopener noreferrer' : undefined}
-      className={`text-blue-600 hover:underline ${styles} ${element.className || ''}`}
+      className={`text-blue-600 hover:underline ${className} ${element.className || ''}`}
+      style={style}
     >
       {element.content}
     </a>
@@ -242,11 +252,12 @@ function renderLink(element: LinkElement): React.ReactNode {
 }
 
 function renderDivider(element: DividerElement): React.ReactNode {
-  const styles = compileStyles(element.styles);
+  const { className, style } = compileStyles(element.styles);
   return (
     <hr
       key={element.id}
-      className={`border-t border-gray-200 my-4 ${styles} ${element.className || ''}`}
+      className={`border-t border-gray-200 my-4 ${className} ${element.className || ''}`}
+      style={style}
     />
   );
 }
