@@ -3,6 +3,23 @@
 import { useState, useCallback } from 'react';
 import { CanvasElement, ElementType, CanvasPage } from '@/lib/dsl/types';
 import { CanvasRenderer } from '@/lib/dsl/renderer';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Element templates
 const elementTemplates: Record<ElementType, () => Omit<CanvasElement, 'id'>> = {
@@ -93,6 +110,96 @@ function generateId(): string {
   return `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Sortable element wrapper
+function SortableElement({
+  element,
+  isSelected,
+  onSelect,
+  onRemove,
+}: {
+  element: CanvasElement;
+  isSelected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: element.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative',
+    cursor: 'grab',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onSelect}
+      className={isSelected ? 'ring-2 ring-blue-500 ring-offset-2 rounded' : ''}
+    >
+      {/* Drag handle + element */}
+      <div className="group relative">
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          style={{
+            position: 'absolute',
+            left: '-28px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            padding: '4px',
+            cursor: 'grab',
+            color: '#9ca3af',
+            opacity: 0,
+            transition: 'opacity 0.15s',
+          }}
+          className="group-hover:opacity-100"
+        >
+          ⋮⋮
+        </div>
+        
+        {/* Element content */}
+        <CanvasRenderer elements={[element]} />
+        
+        {/* Delete button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          style={{
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            padding: '4px 8px',
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '4px',
+            fontSize: '12px',
+            color: '#dc2626',
+            cursor: 'pointer',
+            opacity: 0,
+            transition: 'opacity 0.15s',
+          }}
+          className="group-hover:opacity-100"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function EditorPage() {
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -117,18 +224,28 @@ export default function EditorPage() {
     if (selectedId === id) setSelectedId(null);
   }, [selectedId]);
 
-  const moveElement = useCallback((id: string, direction: 'up' | 'down') => {
-    setElements((prev) => {
-      const index = prev.findIndex((el) => el.id === id);
-      if (index === -1) return prev;
-      if (direction === 'up' && index === 0) return prev;
-      if (direction === 'down' && index === prev.length - 1) return prev;
-      
-      const newElements = [...prev];
-      const swapIndex = direction === 'up' ? index - 1 : index + 1;
-      [newElements[index], newElements[swapIndex]] = [newElements[swapIndex], newElements[index]];
-      return newElements;
-    });
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setElements((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
   }, []);
 
   const updateElement = useCallback((id: string, updates: Record<string, unknown>) => {
@@ -320,38 +437,29 @@ export default function EditorPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4">
-                {elements.map((element) => (
-                  <div
-                    key={element.id}
-                    onClick={() => setSelectedId(element.id)}
-                    className={`relative group cursor-pointer ${
-                      selectedId === element.id ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                    }`}
+              <div className="p-4 pl-10">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={elements.map((e) => e.id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    <CanvasRenderer elements={[element]} />
-                    <div className="absolute top-0 right-0 hidden group-hover:flex gap-1 p-1 bg-white rounded shadow">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); moveElement(element.id, 'up'); }}
-                        className="p-1 hover:bg-gray-100 rounded text-xs"
-                      >
-                        ↑
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); moveElement(element.id, 'down'); }}
-                        className="p-1 hover:bg-gray-100 rounded text-xs"
-                      >
-                        ↓
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); removeElement(element.id); }}
-                        className="p-1 hover:bg-red-100 text-red-600 rounded text-xs"
-                      >
-                        ✕
-                      </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {elements.map((element) => (
+                        <SortableElement
+                          key={element.id}
+                          element={element}
+                          isSelected={selectedId === element.id}
+                          onSelect={() => setSelectedId(element.id)}
+                          onRemove={() => removeElement(element.id)}
+                        />
+                      ))}
                     </div>
-                  </div>
-                ))}
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </div>
