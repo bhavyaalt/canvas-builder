@@ -359,20 +359,51 @@ export default function EditorPage() {
       </div>
 
       {/* Right Sidebar - Properties */}
-      <div className="w-72 bg-white border-l p-4">
-        <h2 className="font-bold text-lg mb-4">Properties</h2>
+      <div style={{ width: '288px', backgroundColor: 'white', borderLeft: '1px solid #e5e7eb', padding: '16px' }}>
+        <h2 style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '16px', color: '#111827' }}>Properties</h2>
         {selectedElement ? (
           <ElementProperties
             element={selectedElement}
             onChange={(updates) => updateElement(selectedId!, updates)}
           />
         ) : (
-          <p className="text-gray-500 text-sm">Select an element to edit its properties</p>
+          <p style={{ color: '#6b7280', fontSize: '14px' }}>Select an element to edit its properties</p>
         )}
       </div>
     </div>
   );
 }
+
+// Styles for properties panel
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '14px',
+  fontWeight: 500,
+  marginBottom: '4px',
+  color: '#374151',
+};
+
+const smallLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  marginBottom: '4px',
+  color: '#4b5563',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '8px 12px',
+  border: '1px solid #d1d5db',
+  borderRadius: '6px',
+  fontSize: '14px',
+  color: '#111827',
+  backgroundColor: '#ffffff',
+};
+
+const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  cursor: 'pointer',
+};
 
 // Properties panel component
 function ElementProperties({
@@ -389,17 +420,19 @@ function ElementProperties({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-gray-500 mb-2">Type: {element.type}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>
+        <strong>Type:</strong> {element.type}
+      </div>
       
       {/* Content fields based on type */}
       {'content' in element && (
         <div>
-          <label className="block text-sm font-medium mb-1">Content</label>
+          <label style={labelStyle}>Content</label>
           <textarea
             value={(element as { content: string }).content}
-            onChange={(e) => onChange({ content: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ content: e.target.value })}
+            style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
             rows={3}
           />
         </div>
@@ -407,59 +440,59 @@ function ElementProperties({
       
       {'label' in element && element.type !== 'checkbox' && element.type !== 'radio' && (
         <div>
-          <label className="block text-sm font-medium mb-1">Label</label>
+          <label style={labelStyle}>Label</label>
           <input
             type="text"
             value={(element as { label: string }).label}
-            onChange={(e) => onChange({ label: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ label: e.target.value })}
+            style={inputStyle}
           />
         </div>
       )}
 
       {'placeholder' in element && (
         <div>
-          <label className="block text-sm font-medium mb-1">Placeholder</label>
+          <label style={labelStyle}>Placeholder</label>
           <input
             type="text"
             value={(element as { placeholder?: string }).placeholder || ''}
-            onChange={(e) => onChange({ placeholder: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ placeholder: e.target.value })}
+            style={inputStyle}
           />
         </div>
       )}
 
       {'src' in element && (
         <div>
-          <label className="block text-sm font-medium mb-1">Image URL</label>
+          <label style={labelStyle}>Image URL</label>
           <input
             type="text"
             value={(element as { src: string }).src}
-            onChange={(e) => onChange({ src: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ src: e.target.value })}
+            style={inputStyle}
           />
         </div>
       )}
 
       {'href' in element && (
         <div>
-          <label className="block text-sm font-medium mb-1">Link URL</label>
+          <label style={labelStyle}>Link URL</label>
           <input
             type="text"
             value={(element as { href: string }).href}
-            onChange={(e) => onChange({ href: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ href: e.target.value })}
+            style={inputStyle}
           />
         </div>
       )}
 
       {element.type === 'heading' && (
         <div>
-          <label className="block text-sm font-medium mb-1">Level</label>
+          <label style={labelStyle}>Level</label>
           <select
             value={(element as { level: number }).level}
-            onChange={(e) => onChange({ level: parseInt(e.target.value) } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ level: parseInt(e.target.value) })}
+            style={selectStyle}
           >
             {[1, 2, 3, 4, 5, 6].map((l) => (
               <option key={l} value={l}>H{l}</option>
@@ -470,11 +503,11 @@ function ElementProperties({
 
       {element.type === 'button' && (
         <div>
-          <label className="block text-sm font-medium mb-1">Variant</label>
+          <label style={labelStyle}>Variant</label>
           <select
             value={(element as { variant?: string }).variant || 'primary'}
-            onChange={(e) => onChange({ variant: e.target.value } )}
-            className="w-full px-3 py-2 border rounded text-sm"
+            onChange={(e) => onChange({ variant: e.target.value })}
+            style={selectStyle}
           >
             <option value="primary">Primary</option>
             <option value="secondary">Secondary</option>
@@ -485,58 +518,76 @@ function ElementProperties({
       )}
 
       {/* Basic style controls */}
-      <div className="border-t pt-4 mt-4">
-        <h3 className="font-medium text-sm mb-2">Styles</h3>
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
+        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>Styles</h3>
         
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Background Color</label>
-            <input
-              type="color"
-              value={element.styles?.backgroundColor || '#ffffff'}
-              onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-              className="w-full h-8 rounded cursor-pointer"
-            />
+            <label style={smallLabelStyle}>Background Color</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="color"
+                value={element.styles?.backgroundColor || '#ffffff'}
+                onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                style={{ width: '48px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+              />
+              <input
+                type="text"
+                value={element.styles?.backgroundColor || ''}
+                onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                placeholder="#ffffff"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+            </div>
           </div>
           
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Text Color</label>
-            <input
-              type="color"
-              value={element.styles?.color || '#000000'}
-              onChange={(e) => updateStyle('color', e.target.value)}
-              className="w-full h-8 rounded cursor-pointer"
-            />
+            <label style={smallLabelStyle}>Text Color</label>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="color"
+                value={element.styles?.color || '#000000'}
+                onChange={(e) => updateStyle('color', e.target.value)}
+                style={{ width: '48px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+              />
+              <input
+                type="text"
+                value={element.styles?.color || ''}
+                onChange={(e) => updateStyle('color', e.target.value)}
+                placeholder="#000000"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Padding</label>
+            <label style={smallLabelStyle}>Padding</label>
             <input
               type="text"
               value={element.styles?.padding || ''}
               onChange={(e) => updateStyle('padding', e.target.value)}
               placeholder="e.g., 16px"
-              className="w-full px-2 py-1 border rounded text-sm"
+              style={inputStyle}
             />
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Border Radius</label>
+            <label style={smallLabelStyle}>Border Radius</label>
             <input
               type="text"
               value={element.styles?.borderRadius || ''}
               onChange={(e) => updateStyle('borderRadius', e.target.value)}
               placeholder="e.g., 8px"
-              className="w-full px-2 py-1 border rounded text-sm"
+              style={inputStyle}
             />
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Text Align</label>
+            <label style={smallLabelStyle}>Text Align</label>
             <select
               value={element.styles?.textAlign || ''}
               onChange={(e) => updateStyle('textAlign', e.target.value)}
-              className="w-full px-2 py-1 border rounded text-sm"
+              style={selectStyle}
             >
               <option value="">Default</option>
               <option value="left">Left</option>
