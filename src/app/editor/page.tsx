@@ -4,22 +4,14 @@ import { useState, useCallback } from 'react';
 import { CanvasElement, ElementType, CanvasPage } from '@/lib/dsl/types';
 import { CanvasRenderer } from '@/lib/dsl/renderer';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+  findElementById,
+  findParentContainer,
+  getAllContainerIds,
+  removeElementFromTree,
+  addElementToContainer,
+  moveElementToContainer,
+  updateElementInTree,
+} from '@/lib/element-utils';
 
 // Element templates
 const elementTemplates: Record<ElementType, () => Omit<CanvasElement, 'id'>> = {
@@ -110,82 +102,83 @@ function generateId(): string {
   return `el-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Sortable element wrapper
-function SortableElement({
+// Recursive tree element renderer for the editor
+function TreeElement({
   element,
-  isSelected,
+  depth,
+  selectedId,
   onSelect,
   onRemove,
 }: {
   element: CanvasElement;
-  isSelected: boolean;
-  onSelect: () => void;
-  onRemove: () => void;
+  depth: number;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onRemove: (id: string) => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: element.id });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    position: 'relative',
-    cursor: 'grab',
-  };
+  const isSelected = selectedId === element.id;
+  const isContainer = element.type === 'container';
+  const hasChildren = isContainer && element.children && element.children.length > 0;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      onClick={onSelect}
-      className={isSelected ? 'ring-2 ring-blue-500 ring-offset-2 rounded' : ''}
-    >
-      {/* Drag handle + element */}
-      <div className="group relative">
-        {/* Drag handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          style={{
-            position: 'absolute',
-            left: '-28px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            padding: '4px',
-            cursor: 'grab',
-            color: '#9ca3af',
-            opacity: 0,
-            transition: 'opacity 0.15s',
-          }}
-          className="group-hover:opacity-100"
-        >
-          ⋮⋮
+    <div style={{ marginLeft: depth > 0 ? '20px' : '0' }}>
+      {/* Element row */}
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(element.id);
+        }}
+        style={{
+          position: 'relative',
+          padding: '8px',
+          marginBottom: '4px',
+          border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
+          borderRadius: '8px',
+          backgroundColor: isContainer ? '#f0f9ff' : '#ffffff',
+          cursor: 'pointer',
+          transition: 'all 0.15s',
+        }}
+        className="group"
+      >
+        {/* Element type badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <span style={{ 
+            fontSize: '10px', 
+            padding: '2px 6px', 
+            backgroundColor: isContainer ? '#dbeafe' : '#f3f4f6',
+            borderRadius: '4px',
+            color: isContainer ? '#1d4ed8' : '#374151',
+            fontWeight: 500,
+          }}>
+            {elementLabels[element.type]}
+          </span>
+          {depth > 0 && (
+            <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+              (nested)
+            </span>
+          )}
         </div>
-        
-        {/* Element content */}
-        <CanvasRenderer elements={[element]} />
-        
+
+        {/* Element preview */}
+        <div style={{ pointerEvents: 'none' }}>
+          <CanvasRenderer elements={[{ ...element, children: [] } as CanvasElement]} />
+        </div>
+
         {/* Delete button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onRemove();
+            onRemove(element.id);
           }}
           style={{
             position: 'absolute',
-            top: '4px',
-            right: '4px',
+            top: '8px',
+            right: '8px',
             padding: '4px 8px',
             backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
+            border: '1px solid #fecaca',
             borderRadius: '4px',
-            fontSize: '12px',
+            fontSize: '11px',
             color: '#dc2626',
             cursor: 'pointer',
             opacity: 0,
@@ -193,9 +186,44 @@ function SortableElement({
           }}
           className="group-hover:opacity-100"
         >
-          ✕
+          ✕ Delete
         </button>
       </div>
+
+      {/* Children (for containers) */}
+      {hasChildren && (
+        <div style={{ 
+          borderLeft: '2px solid #dbeafe', 
+          paddingLeft: '8px',
+          marginLeft: '8px',
+        }}>
+          {element.children!.map((child) => (
+            <TreeElement
+              key={child.id}
+              element={child}
+              depth={depth + 1}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Empty container indicator */}
+      {isContainer && (!element.children || element.children.length === 0) && (
+        <div style={{
+          marginLeft: '28px',
+          padding: '12px',
+          border: '2px dashed #d1d5db',
+          borderRadius: '8px',
+          color: '#9ca3af',
+          fontSize: '12px',
+          textAlign: 'center',
+        }}>
+          Empty container — add elements and set this as parent
+        </div>
+      )}
     </div>
   );
 }
@@ -203,10 +231,14 @@ function SortableElement({
 export default function EditorPage() {
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [addToContainerId, setAddToContainerId] = useState<string | null>(null);
   const [pageTitle, setPageTitle] = useState('My Page');
   const [pageSlug, setPageSlug] = useState('my-page');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Get available containers for the dropdown
+  const containers = getAllContainerIds(elements);
 
   const addElement = useCallback((type: ElementType) => {
     const template = elementTemplates[type]();
@@ -215,44 +247,30 @@ export default function EditorPage() {
       id: generateId(),
     } as CanvasElement;
     
-    setElements((prev) => [...prev, newElement]);
+    if (addToContainerId) {
+      setElements((prev) => addElementToContainer(prev, newElement, addToContainerId));
+    } else {
+      setElements((prev) => [...prev, newElement]);
+    }
     setSelectedId(newElement.id);
-  }, []);
+  }, [addToContainerId]);
 
   const removeElement = useCallback((id: string) => {
-    setElements((prev) => prev.filter((el) => el.id !== id));
+    setElements((prev) => removeElementFromTree(prev, id));
     if (selectedId === id) setSelectedId(null);
   }, [selectedId]);
 
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement before drag starts
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      setElements((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }, []);
-
   const updateElement = useCallback((id: string, updates: Record<string, unknown>) => {
-    setElements((prev) =>
-      prev.map((el) => (el.id === id ? { ...el, ...updates } as CanvasElement : el))
-    );
+    setElements((prev) => updateElementInTree(prev, id, updates));
   }, []);
+
+  const moveToContainer = useCallback((elementId: string, containerId: string | null) => {
+    setElements((prev) => moveElementToContainer(prev, elementId, containerId));
+  }, []);
+
+  // Get the selected element from the tree
+  const selectedElement = selectedId ? findElementById(elements, selectedId) : null;
+  const selectedParent = selectedId ? findParentContainer(elements, selectedId) : null;
 
   const savePage = async () => {
     setSaving(true);
@@ -316,13 +334,41 @@ export default function EditorPage() {
     reader.readAsText(file);
   };
 
-  const selectedElement = elements.find((el) => el.id === selectedId);
-
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left Sidebar - Elements */}
       <div className="w-64 bg-white border-r p-4 flex flex-col">
         <h2 className="font-bold text-lg mb-4 text-gray-900">Elements</h2>
+        
+        {/* Add to container selector */}
+        {containers.length > 0 && (
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ fontSize: '12px', color: '#6b7280', display: 'block', marginBottom: '4px' }}>
+              Add new elements to:
+            </label>
+            <select
+              value={addToContainerId || ''}
+              onChange={(e) => setAddToContainerId(e.target.value || null)}
+              style={{
+                width: '100%',
+                padding: '6px 8px',
+                fontSize: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                backgroundColor: '#fff',
+                color: '#374151',
+              }}
+            >
+              <option value="">📄 Root (top level)</option>
+              {containers.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {'  '.repeat(c.depth)}📦 Container
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(elementTemplates) as ElementType[]).map((type) => (
             <button
@@ -437,29 +483,17 @@ export default function EditorPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 pl-10">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={elements.map((e) => e.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {elements.map((element) => (
-                        <SortableElement
-                          key={element.id}
-                          element={element}
-                          isSelected={selectedId === element.id}
-                          onSelect={() => setSelectedId(element.id)}
-                          onRemove={() => removeElement(element.id)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+              <div className="p-4">
+                {elements.map((element) => (
+                  <TreeElement
+                    key={element.id}
+                    element={element}
+                    depth={0}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onRemove={removeElement}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -467,11 +501,14 @@ export default function EditorPage() {
       </div>
 
       {/* Right Sidebar - Properties */}
-      <div style={{ width: '288px', backgroundColor: 'white', borderLeft: '1px solid #e5e7eb', padding: '16px' }}>
+      <div style={{ width: '320px', backgroundColor: 'white', borderLeft: '1px solid #e5e7eb', padding: '16px', overflowY: 'auto' }}>
         <h2 style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '16px', color: '#111827' }}>Properties</h2>
         {selectedElement ? (
           <ElementProperties
             element={selectedElement}
+            parentId={selectedParent?.id || null}
+            containers={containers}
+            onMoveToContainer={(containerId) => moveToContainer(selectedId!, containerId)}
             onChange={(updates) => updateElement(selectedId!, updates)}
           />
         ) : (
@@ -516,9 +553,15 @@ const selectStyle: React.CSSProperties = {
 // Properties panel component
 function ElementProperties({
   element,
+  parentId,
+  containers,
+  onMoveToContainer,
   onChange,
 }: {
   element: CanvasElement;
+  parentId: string | null;
+  containers: { id: string; label: string; depth: number }[];
+  onMoveToContainer: (containerId: string | null) => void;
   onChange: (updates: Record<string, unknown>) => void;
 }) {
   const updateStyle = (key: string, value: string) => {
@@ -531,6 +574,30 @@ function ElementProperties({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>
         <strong>Type:</strong> {element.type}
+      </div>
+      
+      {/* Parent container selector */}
+      <div style={{ backgroundColor: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+        <label style={{ ...smallLabelStyle, color: '#1e40af', fontWeight: 500 }}>📦 Parent Container</label>
+        <select
+          value={parentId || ''}
+          onChange={(e) => onMoveToContainer(e.target.value || null)}
+          style={{
+            ...selectStyle,
+            backgroundColor: '#ffffff',
+            border: '1px solid #93c5fd',
+          }}
+        >
+          <option value="">📄 Root (top level)</option>
+          {containers.filter(c => c.id !== element.id).map((c) => (
+            <option key={c.id} value={c.id}>
+              {'  '.repeat(c.depth)}📦 Container
+            </option>
+          ))}
+        </select>
+        <p style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+          Move this element into a container
+        </p>
       </div>
       
       {/* Content fields based on type */}
