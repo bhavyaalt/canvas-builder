@@ -625,19 +625,186 @@ function ElementProperties({
         </div>
       )}
 
-      {/* Basic style controls */}
+      {/* Layout & Position */}
       <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
-        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>Styles</h3>
+        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>📐 Layout</h3>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div>
+              <label style={smallLabelStyle}>Width</label>
+              <input
+                type="text"
+                value={element.styles?.width || ''}
+                onChange={(e) => updateStyle('width', e.target.value)}
+                placeholder="auto"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={smallLabelStyle}>Height</label>
+              <input
+                type="text"
+                value={element.styles?.height || ''}
+                onChange={(e) => updateStyle('height', e.target.value)}
+                placeholder="auto"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
           <div>
-            <label style={smallLabelStyle}>Background Color</label>
+            <label style={smallLabelStyle}>Position</label>
+            <select
+              value={element.styles?.position || ''}
+              onChange={(e) => updateStyle('position', e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">Default (static)</option>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+            </select>
+          </div>
+
+          {(element.styles?.position === 'absolute' || element.styles?.position === 'relative' || element.styles?.position === 'fixed') && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <div>
+                <label style={smallLabelStyle}>Top</label>
+                <input
+                  type="text"
+                  value={element.styles?.top || ''}
+                  onChange={(e) => updateStyle('top', e.target.value)}
+                  placeholder="0px"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={smallLabelStyle}>Left</label>
+                <input
+                  type="text"
+                  value={element.styles?.left || ''}
+                  onChange={(e) => updateStyle('left', e.target.value)}
+                  placeholder="0px"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label style={smallLabelStyle}>Padding</label>
+            <input
+              type="text"
+              value={element.styles?.padding || ''}
+              onChange={(e) => updateStyle('padding', e.target.value)}
+              placeholder="16px"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={smallLabelStyle}>Margin</label>
+            <input
+              type="text"
+              value={element.styles?.margin || ''}
+              onChange={(e) => updateStyle('margin', e.target.value)}
+              placeholder="0px"
+              style={inputStyle}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Display & Flex */}
+      {element.type === 'container' && (
+        <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
+          <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>📦 Container</h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+              <label style={smallLabelStyle}>Display</label>
+              <select
+                value={element.styles?.display || 'flex'}
+                onChange={(e) => updateStyle('display', e.target.value)}
+                style={selectStyle}
+              >
+                <option value="block">Block</option>
+                <option value="flex">Flex</option>
+                <option value="grid">Grid</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={smallLabelStyle}>Direction</label>
+              <select
+                value={element.styles?.flexDirection || 'column'}
+                onChange={(e) => updateStyle('flexDirection', e.target.value)}
+                style={selectStyle}
+              >
+                <option value="column">Column (↓)</option>
+                <option value="row">Row (→)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={smallLabelStyle}>Gap</label>
+              <input
+                type="text"
+                value={element.styles?.gap || ''}
+                onChange={(e) => updateStyle('gap', e.target.value)}
+                placeholder="12px"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label style={smallLabelStyle}>Align Items</label>
+              <select
+                value={element.styles?.alignItems || ''}
+                onChange={(e) => updateStyle('alignItems', e.target.value)}
+                style={selectStyle}
+              >
+                <option value="">Default</option>
+                <option value="start">Start</option>
+                <option value="center">Center</option>
+                <option value="end">End</option>
+                <option value="stretch">Stretch</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={smallLabelStyle}>Justify Content</label>
+              <select
+                value={element.styles?.justifyContent || ''}
+                onChange={(e) => updateStyle('justifyContent', e.target.value)}
+                style={selectStyle}
+              >
+                <option value="">Default</option>
+                <option value="start">Start</option>
+                <option value="center">Center</option>
+                <option value="end">End</option>
+                <option value="between">Space Between</option>
+                <option value="around">Space Around</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Colors & Appearance */}
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
+        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>🎨 Appearance</h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div>
+            <label style={smallLabelStyle}>Background</label>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
                 type="color"
                 value={element.styles?.backgroundColor || '#ffffff'}
                 onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                style={{ width: '48px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                style={{ width: '40px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
               />
               <input
                 type="text"
@@ -656,7 +823,7 @@ function ElementProperties({
                 type="color"
                 value={element.styles?.color || '#000000'}
                 onChange={(e) => updateStyle('color', e.target.value)}
-                style={{ width: '48px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                style={{ width: '40px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
               />
               <input
                 type="text"
@@ -669,25 +836,82 @@ function ElementProperties({
           </div>
 
           <div>
-            <label style={smallLabelStyle}>Padding</label>
-            <input
-              type="text"
-              value={element.styles?.padding || ''}
-              onChange={(e) => updateStyle('padding', e.target.value)}
-              placeholder="e.g., 16px"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
             <label style={smallLabelStyle}>Border Radius</label>
             <input
               type="text"
               value={element.styles?.borderRadius || ''}
               onChange={(e) => updateStyle('borderRadius', e.target.value)}
-              placeholder="e.g., 8px"
+              placeholder="8px"
               style={inputStyle}
             />
+          </div>
+
+          <div>
+            <label style={smallLabelStyle}>Border</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={element.styles?.borderWidth || ''}
+                onChange={(e) => updateStyle('borderWidth', e.target.value)}
+                placeholder="1px"
+                style={{ ...inputStyle, width: '60px' }}
+              />
+              <input
+                type="color"
+                value={element.styles?.borderColor || '#d1d5db'}
+                onChange={(e) => updateStyle('borderColor', e.target.value)}
+                style={{ width: '40px', height: '32px', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={smallLabelStyle}>Shadow</label>
+            <select
+              value={element.styles?.shadow || ''}
+              onChange={(e) => updateStyle('shadow', e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">None</option>
+              <option value="sm">Small</option>
+              <option value="md">Medium</option>
+              <option value="lg">Large</option>
+              <option value="xl">X-Large</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Typography */}
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
+        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>✏️ Typography</h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div>
+              <label style={smallLabelStyle}>Font Size</label>
+              <input
+                type="text"
+                value={element.styles?.fontSize || ''}
+                onChange={(e) => updateStyle('fontSize', e.target.value)}
+                placeholder="16px"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={smallLabelStyle}>Weight</label>
+              <select
+                value={element.styles?.fontWeight || ''}
+                onChange={(e) => updateStyle('fontWeight', e.target.value)}
+                style={selectStyle}
+              >
+                <option value="">Default</option>
+                <option value="normal">Normal</option>
+                <option value="medium">Medium</option>
+                <option value="semibold">Semibold</option>
+                <option value="bold">Bold</option>
+              </select>
+            </div>
           </div>
 
           <div>
@@ -704,6 +928,26 @@ function ElementProperties({
             </select>
           </div>
         </div>
+      </div>
+
+      {/* Custom CSS */}
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', marginTop: '8px' }}>
+        <h3 style={{ fontWeight: 500, fontSize: '14px', marginBottom: '12px', color: '#111827' }}>🔧 Custom CSS</h3>
+        <textarea
+          value={element.styles?.customCSS || ''}
+          onChange={(e) => updateStyle('customCSS', e.target.value)}
+          placeholder="transform: rotate(5deg);&#10;box-shadow: 0 4px 20px rgba(0,0,0,0.2);"
+          style={{ 
+            ...inputStyle, 
+            fontFamily: 'monospace', 
+            fontSize: '12px',
+            minHeight: '80px',
+            resize: 'vertical',
+          }}
+        />
+        <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+          Write CSS properties (one per line, with semicolons)
+        </p>
       </div>
     </div>
   );

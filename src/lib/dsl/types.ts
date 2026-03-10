@@ -16,16 +16,30 @@ export type ElementType =
   | 'divider';
 
 export interface StyleProps {
+  // Positioning
+  position?: 'static' | 'relative' | 'absolute' | 'fixed';
+  top?: string;
+  left?: string;
+  right?: string;
+  bottom?: string;
+  zIndex?: number;
+  
   // Layout
   width?: string;
   height?: string;
+  minWidth?: string;
+  minHeight?: string;
+  maxWidth?: string;
+  maxHeight?: string;
   padding?: string;
   margin?: string;
-  display?: 'block' | 'flex' | 'grid' | 'inline' | 'inline-block';
+  display?: 'block' | 'flex' | 'grid' | 'inline' | 'inline-block' | 'none';
   flexDirection?: 'row' | 'column';
+  flexWrap?: 'nowrap' | 'wrap';
   justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around';
   alignItems?: 'start' | 'center' | 'end' | 'stretch';
   gap?: string;
+  overflow?: 'visible' | 'hidden' | 'scroll' | 'auto';
   
   // Colors
   backgroundColor?: string;
@@ -41,10 +55,15 @@ export interface StyleProps {
   fontSize?: string;
   fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
   textAlign?: 'left' | 'center' | 'right';
+  lineHeight?: string;
+  letterSpacing?: string;
   
   // Effects
   shadow?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
   opacity?: number;
+  
+  // Custom CSS (raw)
+  customCSS?: string;
 }
 
 export interface BaseElement {
