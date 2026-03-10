@@ -205,27 +205,67 @@ export default function EditorPage() {
     <div className="min-h-screen bg-gray-100 flex">
       {/* Left Sidebar - Elements */}
       <div className="w-64 bg-white border-r p-4 flex flex-col">
-        <h2 className="font-bold text-lg mb-4">Elements</h2>
+        <h2 className="font-bold text-lg mb-4 text-gray-900">Elements</h2>
         <div className="grid grid-cols-2 gap-2">
           {(Object.keys(elementTemplates) as ElementType[]).map((type) => (
             <button
               key={type}
               onClick={() => addElement(type)}
-              className="p-2 text-xs bg-gray-50 hover:bg-blue-50 border rounded transition-colors text-left"
+              style={{
+                padding: '8px',
+                fontSize: '11px',
+                backgroundColor: '#f3f4f6',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                textAlign: 'left',
+                color: '#1f2937',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#dbeafe';
+                e.currentTarget.style.borderColor = '#3b82f6';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.borderColor = '#d1d5db';
+              }}
             >
               {elementLabels[type]}
             </button>
           ))}
         </div>
         
-        <div className="mt-auto pt-4 border-t space-y-2">
+        <div className="mt-auto pt-4 border-t border-gray-200 space-y-2">
           <button
             onClick={exportJson}
-            className="w-full py-2 px-3 text-sm bg-gray-100 hover:bg-gray-200 rounded"
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '14px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              color: '#374151',
+              cursor: 'pointer',
+            }}
           >
             📥 Export JSON
           </button>
-          <label className="block w-full py-2 px-3 text-sm bg-gray-100 hover:bg-gray-200 rounded text-center cursor-pointer">
+          <label 
+            style={{
+              display: 'block',
+              width: '100%',
+              padding: '8px 12px',
+              fontSize: '14px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              color: '#374151',
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+          >
             📤 Import JSON
             <input type="file" accept=".json" onChange={importJson} className="hidden" />
           </label>
